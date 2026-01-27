@@ -18,6 +18,7 @@ public class DefenderPlacementManager : MonoBehaviour
     public Color spotOccupiedColor = new Color(0.35f, 0.35f, 0.35f);
 
     [Header("Defender")]
+    public GameObject defenderPrefab;
     public float defenderMaxHealth = 6f;
     public float defenderRange = 4f;
     public float defenderAttackInterval = 0.6f;
@@ -178,15 +179,26 @@ public class DefenderPlacementManager : MonoBehaviour
             }
         }
 
-        GameObject defenderObject = GameObject.CreatePrimitive(PrimitiveType.Cube);
+        GameObject defenderObject = defenderPrefab != null
+            ? Instantiate(defenderPrefab)
+            : GameObject.CreatePrimitive(PrimitiveType.Cube);
+
         defenderObject.name = "Defender";
         defenderObject.transform.position = spotPosition + Vector3.up * defenderHeightOffset;
         defenderObject.transform.localScale = defenderScale;
 
-        var renderer = defenderObject.GetComponent<MeshRenderer>();
-        if (renderer != null)
+        if (defenderPrefab == null)
         {
-            renderer.material.color = defenderColor;
+            var renderer = defenderObject.GetComponent<MeshRenderer>();
+            if (renderer != null)
+            {
+                renderer.material.color = defenderColor;
+            }
+        }
+
+        if (defenderObject.GetComponent<Collider>() == null)
+        {
+            defenderObject.AddComponent<BoxCollider>();
         }
 
         var health = defenderObject.AddComponent<DefenderHealth>();

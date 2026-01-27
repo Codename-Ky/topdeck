@@ -522,6 +522,80 @@ MonoBehaviour:
   m_ShadowLayerMask: 1
   m_RenderingLayers: 1
   m_ShadowRenderingLayers: 1
+--- !u!1001 &523587954
+PrefabInstance:
+  m_ObjectHideFlags: 0
+  serializedVersion: 2
+  m_Modification:
+    serializedVersion: 3
+    m_TransformParent: {fileID: 1046336164}
+    m_Modifications:
+    - target: {fileID: 5450128009462672561, guid: e19998c6bac15c742b884092622f33ea, type: 3}
+      propertyPath: m_LocalScale.x
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 5450128009462672561, guid: e19998c6bac15c742b884092622f33ea, type: 3}
+      propertyPath: m_LocalScale.y
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 5450128009462672561, guid: e19998c6bac15c742b884092622f33ea, type: 3}
+      propertyPath: m_LocalScale.z
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 5450128009462672561, guid: e19998c6bac15c742b884092622f33ea, type: 3}
+      propertyPath: m_LocalPosition.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 5450128009462672561, guid: e19998c6bac15c742b884092622f33ea, type: 3}
+      propertyPath: m_LocalPosition.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 5450128009462672561, guid: e19998c6bac15c742b884092622f33ea, type: 3}
+      propertyPath: m_LocalPosition.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 5450128009462672561, guid: e19998c6bac15c742b884092622f33ea, type: 3}
+      propertyPath: m_LocalRotation.w
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 5450128009462672561, guid: e19998c6bac15c742b884092622f33ea, type: 3}
+      propertyPath: m_LocalRotation.x
+      value: -0
+      objectReference: {fileID: 0}
+    - target: {fileID: 5450128009462672561, guid: e19998c6bac15c742b884092622f33ea, type: 3}
+      propertyPath: m_LocalRotation.y
+      value: -0
+      objectReference: {fileID: 0}
+    - target: {fileID: 5450128009462672561, guid: e19998c6bac15c742b884092622f33ea, type: 3}
+      propertyPath: m_LocalRotation.z
+      value: -0
+      objectReference: {fileID: 0}
+    - target: {fileID: 5450128009462672561, guid: e19998c6bac15c742b884092622f33ea, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 5450128009462672561, guid: e19998c6bac15c742b884092622f33ea, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 5450128009462672561, guid: e19998c6bac15c742b884092622f33ea, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 7392822562986407050, guid: e19998c6bac15c742b884092622f33ea, type: 3}
+      propertyPath: m_Name
+      value: TowerVisual
+      objectReference: {fileID: 0}
+    m_RemovedComponents: []
+    m_RemovedGameObjects: []
+    m_AddedGameObjects: []
+    m_AddedComponents: []
+  m_SourcePrefab: {fileID: 100100000, guid: e19998c6bac15c742b884092622f33ea, type: 3}
+--- !u!4 &523587955 stripped
+Transform:
+  m_CorrespondingSourceObject: {fileID: 5450128009462672561, guid: e19998c6bac15c742b884092622f33ea, type: 3}
+  m_PrefabInstance: {fileID: 523587954}
+  m_PrefabAsset: {fileID: 0}
 --- !u!1 &832575517
 GameObject:
   m_ObjectHideFlags: 0
@@ -580,9 +654,6 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 1046336164}
-  - component: {fileID: 1046336163}
-  - component: {fileID: 1046336162}
-  - component: {fileID: 1046336161}
   - component: {fileID: 1046336160}
   - component: {fileID: 1046336159}
   m_Layer: 0
@@ -621,84 +692,6 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::TowerHealth
   maxHealth: 20
   currentHealth: 0
---- !u!23 &1046336161
-MeshRenderer:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1046336158}
-  m_Enabled: 1
-  m_CastShadows: 1
-  m_ReceiveShadows: 1
-  m_DynamicOccludee: 1
-  m_StaticShadowCaster: 0
-  m_MotionVectors: 1
-  m_LightProbeUsage: 1
-  m_ReflectionProbeUsage: 1
-  m_RayTracingMode: 2
-  m_RayTraceProcedural: 0
-  m_RayTracingAccelStructBuildFlagsOverride: 0
-  m_RayTracingAccelStructBuildFlags: 1
-  m_SmallMeshCulling: 1
-  m_ForceMeshLod: -1
-  m_MeshLodSelectionBias: 0
-  m_RenderingLayerMask: 1
-  m_RendererPriority: 0
-  m_Materials:
-  - {fileID: 2100000, guid: 31321ba15b8f8eb4c954353edc038b1d, type: 2}
-  m_StaticBatchInfo:
-    firstSubMesh: 0
-    subMeshCount: 0
-  m_StaticBatchRoot: {fileID: 0}
-  m_ProbeAnchor: {fileID: 0}
-  m_LightProbeVolumeOverride: {fileID: 0}
-  m_ScaleInLightmap: 1
-  m_ReceiveGI: 1
-  m_PreserveUVs: 1
-  m_IgnoreNormalsForChartDetection: 0
-  m_ImportantGI: 0
-  m_StitchLightmapSeams: 1
-  m_SelectedEditorRenderState: 3
-  m_MinimumChartSize: 4
-  m_AutoUVMaxDistance: 0.5
-  m_AutoUVMaxAngle: 89
-  m_LightmapParameters: {fileID: 0}
-  m_GlobalIlluminationMeshLod: 0
-  m_SortingLayerID: 0
-  m_SortingLayer: 0
-  m_SortingOrder: 0
-  m_MaskInteraction: 0
-  m_AdditionalVertexStreams: {fileID: 0}
---- !u!65 &1046336162
-BoxCollider:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1046336158}
-  m_Material: {fileID: 0}
-  m_IncludeLayers:
-    serializedVersion: 2
-    m_Bits: 0
-  m_ExcludeLayers:
-    serializedVersion: 2
-    m_Bits: 0
-  m_LayerOverridePriority: 0
-  m_IsTrigger: 0
-  m_ProvidesContacts: 0
-  m_Enabled: 1
-  serializedVersion: 3
-  m_Size: {x: 1, y: 1, z: 1}
-  m_Center: {x: 0, y: 0, z: 0}
---- !u!33 &1046336163
-MeshFilter:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1046336158}
-  m_Mesh: {fileID: 10202, guid: 0000000000000000e000000000000000, type: 0}
 --- !u!4 &1046336164
 Transform:
   m_ObjectHideFlags: 0
@@ -711,7 +704,8 @@ Transform:
   m_LocalPosition: {x: 0, y: 0.5, z: 0}
   m_LocalScale: {x: 1.2, y: 1.2, z: 1.2}
   m_ConstrainProportionsScale: 0
-  m_Children: []
+  m_Children:
+  - {fileID: 523587955}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &1287295578
@@ -747,7 +741,20 @@ MonoBehaviour:
   tower: {fileID: 0}
   towerAttack: {fileID: 0}
   spawners: []
+  startingMoney: 200
+  defenderCost: 100
+  rewardPerKill: 50
+  startingRound: 1
+  roundStartDelay: 2
+  baseEnemiesPerRound: 3
+  enemiesPerRoundIncrement: 2
+  healthMultiplierPerRound: 0.15
+  speedMultiplierPerRound: 0.05
+  damageMultiplierPerRound: 0.1
   isGameOver: 0
+  currentRound: 0
+  currentMoney: 0
+  roundInProgress: 0
 --- !u!4 &1287295580
 Transform:
   m_ObjectHideFlags: 0
@@ -777,10 +784,16 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::TowerHud
   tower: {fileID: 0}
   towerHealthText: {fileID: 0}
+  moneyText: {fileID: 0}
+  roundText: {fileID: 0}
   gameOverText: {fileID: 0}
   referenceResolution: {x: 1920, y: 1080}
   healthPadding: {x: 24, y: 24}
+  moneyPadding: {x: 24, y: 70}
+  roundPadding: {x: 24, y: 24}
   healthFontSize: 32
+  moneyFontSize: 28
+  roundFontSize: 28
   gameOverFontSize: 72
 --- !u!1 &1310329111
 GameObject:
@@ -818,6 +831,13 @@ MonoBehaviour:
   enemyMaxHealth: 5
   damageToTower: 1
   enemyHeightOffset: 0.5
+  towerAttackRange: 1.4
+  towerAttackInterval: 0.8
+  spawnOnePerInterval: 1
+  showSpawnMarkers: 1
+  spawnMarkerScale: 0.5
+  spawnMarkerColor: {r: 0.85, g: 0.2, b: 0.9, a: 1}
+  useRounds: 1
   defenderAttackRange: 1.2
   defenderAttackInterval: 0.6
   damageToDefender: 1
@@ -872,6 +892,7 @@ MonoBehaviour:
   spotHeightOffset: 0.1
   spotAvailableColor: {r: 0.2, g: 0.5, b: 1, a: 1}
   spotOccupiedColor: {r: 0.35, g: 0.35, b: 0.35, a: 1}
+  defenderPrefab: {fileID: 1014717639346074084, guid: 8f627f90f40024c43b8d66bb930b0e61, type: 3}
   defenderMaxHealth: 8
   defenderRange: 4.5
   defenderAttackInterval: 0.7

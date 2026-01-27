@@ -9,6 +9,10 @@ public class Enemy : MonoBehaviour
     public float damageToTower = 1f;
     public float heightOffset = 0.5f;
 
+    [Header("Tower Attack")]
+    public float towerAttackRange = 1.4f;
+    public float towerAttackInterval = 0.8f;
+
     [Header("Defender Attack")]
     public float defenderAttackRange = 1.2f;
     public float defenderAttackInterval = 0.6f;
@@ -20,6 +24,8 @@ public class Enemy : MonoBehaviour
     private TowerHealth tower;
     private float attackTimer;
     private DefenderHealth defenderTarget;
+    private float towerAttackTimer;
+    private bool reachedTower;
 
     private void Awake()
     {
@@ -27,7 +33,7 @@ public class Enemy : MonoBehaviour
     }
 
     public void Initialize(IReadOnlyList<Vector3> pathPoints, TowerHealth towerRef, float speed, float health, float damage, float offset,
-        float defenderRange, float defenderInterval, float defenderDamage)
+        float defenderRange, float defenderInterval, float defenderDamage, float towerRange, float towerInterval)
     {
         path = pathPoints;
         tower = towerRef;
@@ -39,7 +45,10 @@ public class Enemy : MonoBehaviour
         defenderAttackRange = defenderRange;
         defenderAttackInterval = defenderInterval;
         damageToDefender = defenderDamage;
+        towerAttackRange = towerRange;
+        towerAttackInterval = towerInterval;
         pathIndex = 0;
+        reachedTower = false;
 
         if (path != null && path.Count > 0)
         {
@@ -50,6 +59,11 @@ public class Enemy : MonoBehaviour
     private void Update()
     {
         if (path == null || path.Count == 0 || GameManager.IsGameOver)
+        {
+            return;
+        }
+
+        if (TryAttackTower())
         {
             return;
         }
@@ -67,11 +81,7 @@ public class Enemy : MonoBehaviour
             pathIndex++;
             if (pathIndex >= path.Count)
             {
-                if (tower != null)
-                {
-                    tower.TakeDamage(damageToTower);
-                }
-                Destroy(gameObject);
+                reachedTower = true;
             }
         }
     }
@@ -115,6 +125,30 @@ public class Enemy : MonoBehaviour
         {
             defenderTarget.TakeDamage(damageToDefender);
             attackTimer = defenderAttackInterval;
+        }
+
+        return true;
+    }
+
+    private bool TryAttackTower()
+    {
+        if (tower == null)
+        {
+            return false;
+        }
+
+        float sqrDistance = (tower.transform.position - transform.position).sqrMagnitude;
+        float range = towerAttackRange * towerAttackRange;
+        if (!reachedTower && sqrDistance > range)
+        {
+            return false;
+        }
+
+        towerAttackTimer -= Time.deltaTime;
+        if (towerAttackTimer <= 0f)
+        {
+            tower.TakeDamage(damageToTower);
+            towerAttackTimer = towerAttackInterval;
         }
 
         return true;

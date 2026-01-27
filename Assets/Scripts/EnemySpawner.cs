@@ -14,6 +14,10 @@ public class EnemySpawner : MonoBehaviour
     public float damageToTower = 1f;
     public float enemyHeightOffset = 0.5f;
 
+    [Header("Tower Attack")]
+    public float towerAttackRange = 1.4f;
+    public float towerAttackInterval = 0.8f;
+
     [Header("Spawn Locations")]
     public bool spawnOnePerInterval = true;
     public bool showSpawnMarkers = true;
@@ -121,7 +125,7 @@ public class EnemySpawner : MonoBehaviour
             IReadOnlyList<Vector3> path = paths[spawnIndex];
             Enemy enemy = CreateEnemy();
             enemy.Initialize(path, tower, enemySpeed, enemyMaxHealth, damageToTower, enemyHeightOffset,
-                defenderAttackRange, defenderAttackInterval, damageToDefender);
+                defenderAttackRange, defenderAttackInterval, damageToDefender, towerAttackRange, towerAttackInterval);
             spawnIndex = (spawnIndex + 1) % paths.Count;
         }
         else
@@ -130,7 +134,7 @@ public class EnemySpawner : MonoBehaviour
             {
                 Enemy enemy = CreateEnemy();
                 enemy.Initialize(path, tower, enemySpeed, enemyMaxHealth, damageToTower, enemyHeightOffset,
-                    defenderAttackRange, defenderAttackInterval, damageToDefender);
+                    defenderAttackRange, defenderAttackInterval, damageToDefender, towerAttackRange, towerAttackInterval);
             }
         }
     }

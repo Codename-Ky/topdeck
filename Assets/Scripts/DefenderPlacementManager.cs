@@ -34,7 +34,7 @@ public class DefenderPlacementManager : MonoBehaviour
         mainCamera = Camera.main;
         if (terrain == null)
         {
-            terrain = FindObjectOfType<ProceduralTerrainGenerator>();
+            terrain = FindFirstObjectByType<ProceduralTerrainGenerator>();
         }
 
         if (terrain == null)

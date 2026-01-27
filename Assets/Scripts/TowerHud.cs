@@ -95,7 +95,7 @@ public class TowerHud : MonoBehaviour
         GameObject textObject = new GameObject(objectName, typeof(RectTransform), typeof(CanvasRenderer), typeof(Text));
         textObject.transform.SetParent(parent, false);
         Text text = textObject.GetComponent<Text>();
-        text.font = Resources.GetBuiltinResource<Font>("Arial.ttf");
+        text.font = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
         text.text = "";
         return text;
     }

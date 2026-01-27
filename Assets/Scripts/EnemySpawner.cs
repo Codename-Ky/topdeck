@@ -14,6 +14,12 @@ public class EnemySpawner : MonoBehaviour
     public float damageToTower = 1f;
     public float enemyHeightOffset = 0.5f;
 
+    [Header("Spawn Locations")]
+    public bool spawnOnePerInterval = true;
+    public bool showSpawnMarkers = true;
+    public float spawnMarkerScale = 0.5f;
+    public Color spawnMarkerColor = new Color(0.85f, 0.2f, 0.9f);
+
     [Header("Defender Attack")]
     public float defenderAttackRange = 1.2f;
     public float defenderAttackInterval = 0.6f;
@@ -23,18 +29,21 @@ public class EnemySpawner : MonoBehaviour
     public Color enemyColor = new Color(1f, 0.3f, 0.3f);
 
     private readonly List<IReadOnlyList<Vector3>> paths = new List<IReadOnlyList<Vector3>>();
+    private readonly List<Vector3> spawnLocations = new List<Vector3>();
+    private readonly List<GameObject> spawnMarkers = new List<GameObject>();
     private float timer;
+    private int spawnIndex;
 
     private void Start()
     {
         if (terrain == null)
         {
-            terrain = FindObjectOfType<ProceduralTerrainGenerator>();
+            terrain = FindFirstObjectByType<ProceduralTerrainGenerator>();
         }
 
         if (tower == null)
         {
-            tower = FindObjectOfType<TowerHealth>();
+            tower = FindFirstObjectByType<TowerHealth>();
         }
 
         if (terrain == null)
@@ -61,12 +70,14 @@ public class EnemySpawner : MonoBehaviour
         }
 
         timer = 0f;
-        SpawnWave();
+        SpawnEnemies();
     }
 
     private void CachePaths()
     {
         paths.Clear();
+        spawnLocations.Clear();
+        ClearSpawnMarkers();
         var source = terrain.PathsWorld;
         if (source == null)
         {
@@ -80,10 +91,19 @@ public class EnemySpawner : MonoBehaviour
                 continue;
             }
             paths.Add(path);
+            spawnLocations.Add(path[0]);
+        }
+
+        if (showSpawnMarkers)
+        {
+            for (int i = 0; i < spawnLocations.Count; i++)
+            {
+                CreateSpawnMarker(spawnLocations[i]);
+            }
         }
     }
 
-    private void SpawnWave()
+    private void SpawnEnemies()
     {
         if (paths.Count == 0)
         {
@@ -95,11 +115,23 @@ public class EnemySpawner : MonoBehaviour
             return;
         }
 
-        foreach (var path in paths)
+        if (spawnOnePerInterval)
         {
+            spawnIndex = Mathf.Clamp(spawnIndex, 0, paths.Count - 1);
+            IReadOnlyList<Vector3> path = paths[spawnIndex];
             Enemy enemy = CreateEnemy();
             enemy.Initialize(path, tower, enemySpeed, enemyMaxHealth, damageToTower, enemyHeightOffset,
                 defenderAttackRange, defenderAttackInterval, damageToDefender);
+            spawnIndex = (spawnIndex + 1) % paths.Count;
+        }
+        else
+        {
+            foreach (var path in paths)
+            {
+                Enemy enemy = CreateEnemy();
+                enemy.Initialize(path, tower, enemySpeed, enemyMaxHealth, damageToTower, enemyHeightOffset,
+                    defenderAttackRange, defenderAttackInterval, damageToDefender);
+            }
         }
     }
 
@@ -115,5 +147,32 @@ public class EnemySpawner : MonoBehaviour
         }
 
         return enemyObject.AddComponent<Enemy>();
+    }
+
+    private void CreateSpawnMarker(Vector3 position)
+    {
+        GameObject marker = GameObject.CreatePrimitive(PrimitiveType.Cylinder);
+        marker.name = "SpawnMarker";
+        marker.transform.SetParent(transform, false);
+        marker.transform.position = position + Vector3.up * 0.1f;
+        marker.transform.localScale = new Vector3(spawnMarkerScale, 0.05f, spawnMarkerScale);
+        var renderer = marker.GetComponent<MeshRenderer>();
+        if (renderer != null)
+        {
+            renderer.material.color = spawnMarkerColor;
+        }
+        spawnMarkers.Add(marker);
+    }
+
+    private void ClearSpawnMarkers()
+    {
+        for (int i = 0; i < spawnMarkers.Count; i++)
+        {
+            if (spawnMarkers[i] != null)
+            {
+                Destroy(spawnMarkers[i]);
+            }
+        }
+        spawnMarkers.Clear();
     }
 }

@@ -9,17 +9,25 @@ public class Enemy : MonoBehaviour
     public float damageToTower = 1f;
     public float heightOffset = 0.5f;
 
+    [Header("Defender Attack")]
+    public float defenderAttackRange = 1.2f;
+    public float defenderAttackInterval = 0.6f;
+    public float damageToDefender = 1f;
+
     private float currentHealth;
     private IReadOnlyList<Vector3> path;
     private int pathIndex;
     private TowerHealth tower;
+    private float attackTimer;
+    private DefenderHealth defenderTarget;
 
     private void Awake()
     {
         currentHealth = maxHealth;
     }
 
-    public void Initialize(IReadOnlyList<Vector3> pathPoints, TowerHealth towerRef, float speed, float health, float damage, float offset)
+    public void Initialize(IReadOnlyList<Vector3> pathPoints, TowerHealth towerRef, float speed, float health, float damage, float offset,
+        float defenderRange, float defenderInterval, float defenderDamage)
     {
         path = pathPoints;
         tower = towerRef;
@@ -28,6 +36,9 @@ public class Enemy : MonoBehaviour
         currentHealth = health;
         damageToTower = damage;
         heightOffset = offset;
+        defenderAttackRange = defenderRange;
+        defenderAttackInterval = defenderInterval;
+        damageToDefender = defenderDamage;
         pathIndex = 0;
 
         if (path != null && path.Count > 0)
@@ -39,6 +50,11 @@ public class Enemy : MonoBehaviour
     private void Update()
     {
         if (path == null || path.Count == 0 || GameManager.IsGameOver)
+        {
+            return;
+        }
+
+        if (TryAttackDefender())
         {
             return;
         }
@@ -72,5 +88,60 @@ public class Enemy : MonoBehaviour
         {
             Destroy(gameObject);
         }
+    }
+
+    private bool TryAttackDefender()
+    {
+        if (defenderTarget == null)
+        {
+            defenderTarget = FindDefenderInRange();
+        }
+
+        if (defenderTarget == null)
+        {
+            return false;
+        }
+
+        float sqrDistance = (defenderTarget.transform.position - transform.position).sqrMagnitude;
+        float range = defenderAttackRange * defenderAttackRange;
+        if (sqrDistance > range)
+        {
+            defenderTarget = null;
+            return false;
+        }
+
+        attackTimer -= Time.deltaTime;
+        if (attackTimer <= 0f)
+        {
+            defenderTarget.TakeDamage(damageToDefender);
+            attackTimer = defenderAttackInterval;
+        }
+
+        return true;
+    }
+
+    private DefenderHealth FindDefenderInRange()
+    {
+        Collider[] hits = Physics.OverlapSphere(transform.position, defenderAttackRange);
+        DefenderHealth closest = null;
+        float bestDistance = float.PositiveInfinity;
+
+        foreach (var hit in hits)
+        {
+            DefenderHealth defender = hit.GetComponent<DefenderHealth>();
+            if (defender == null)
+            {
+                continue;
+            }
+
+            float distance = (defender.transform.position - transform.position).sqrMagnitude;
+            if (distance < bestDistance)
+            {
+                bestDistance = distance;
+                closest = defender;
+            }
+        }
+
+        return closest;
     }
 }

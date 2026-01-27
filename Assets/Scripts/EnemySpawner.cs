@@ -14,6 +14,11 @@ public class EnemySpawner : MonoBehaviour
     public float damageToTower = 1f;
     public float enemyHeightOffset = 0.5f;
 
+    [Header("Defender Attack")]
+    public float defenderAttackRange = 1.2f;
+    public float defenderAttackInterval = 0.6f;
+    public float damageToDefender = 1f;
+
     [Header("Visuals")]
     public Color enemyColor = new Color(1f, 0.3f, 0.3f);
 
@@ -93,7 +98,8 @@ public class EnemySpawner : MonoBehaviour
         foreach (var path in paths)
         {
             Enemy enemy = CreateEnemy();
-            enemy.Initialize(path, tower, enemySpeed, enemyMaxHealth, damageToTower, enemyHeightOffset);
+            enemy.Initialize(path, tower, enemySpeed, enemyMaxHealth, damageToTower, enemyHeightOffset,
+                defenderAttackRange, defenderAttackInterval, damageToDefender);
         }
     }
 

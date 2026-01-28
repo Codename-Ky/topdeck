@@ -848,9 +848,73 @@ MonoBehaviour:
   defenderTargetMask:
     serializedVersion: 2
     m_Bits: 512
-  enemyPrefab: {fileID: 0}
+  enemyTypes:
+  - displayName: Rager
+    prefab: {fileID: 5131611568467915952, guid: 2998649f15be6f547a79ee4c9a582b95, type: 3}
+    prefabPath: Assets/Prefabs/Bug_enemy1.prefab
+    spawnWeight: 1
+    speedMultiplier: 1.3
+    healthMultiplier: 0.8
+    towerDamageMultiplier: 1
+    defenderDamageMultiplier: 1
+    overrideTowerAttack: 0
+    towerAttackRange: 1.4
+    towerAttackInterval: 0.8
+    overrideDefenderAttack: 0
+    defenderAttackRange: 1.2
+    defenderAttackInterval: 0.6
+    attackPriority: 0
+    damageTakenMultiplier: 1
+    enrageOnLowHealth: 1
+    enrageHealthFraction: 0.5
+    enrageSpeedMultiplier: 1.6
+    enrageDamageMultiplier: 1.25
+    enrageAttackIntervalMultiplier: 0.7
+  - displayName: Brute
+    prefab: {fileID: 2792669959379693513, guid: 1b59caab551bf4f4da19b480bc8ad274, type: 3}
+    prefabPath: Assets/Prefabs/Bug_enemy2.prefab
+    spawnWeight: 1
+    speedMultiplier: 0.7
+    healthMultiplier: 2
+    towerDamageMultiplier: 1.5
+    defenderDamageMultiplier: 1.2
+    overrideTowerAttack: 0
+    towerAttackRange: 1.4
+    towerAttackInterval: 0.8
+    overrideDefenderAttack: 0
+    defenderAttackRange: 1.2
+    defenderAttackInterval: 0.6
+    attackPriority: 0
+    damageTakenMultiplier: 0.6
+    enrageOnLowHealth: 0
+    enrageHealthFraction: 0.4
+    enrageSpeedMultiplier: 1.4
+    enrageDamageMultiplier: 1.2
+    enrageAttackIntervalMultiplier: 0.8
+  - displayName: Skirmisher
+    prefab: {fileID: 4365810609117409619, guid: 5cf982d3a72c32e4db35afcf9b9e5252, type: 3}
+    prefabPath: Assets/Prefabs/Bug_enemy3.prefab
+    spawnWeight: 1
+    speedMultiplier: 1.05
+    healthMultiplier: 1
+    towerDamageMultiplier: 0.9
+    defenderDamageMultiplier: 1.1
+    overrideTowerAttack: 1
+    towerAttackRange: 1.1
+    towerAttackInterval: 0.75
+    overrideDefenderAttack: 1
+    defenderAttackRange: 1.9
+    defenderAttackInterval: 0.5
+    attackPriority: 1
+    damageTakenMultiplier: 1
+    enrageOnLowHealth: 0
+    enrageHealthFraction: 0.4
+    enrageSpeedMultiplier: 1.4
+    enrageDamageMultiplier: 1.2
+    enrageAttackIntervalMultiplier: 0.8
+  enemyPrefab: {fileID: 5131611568467915952, guid: 2998649f15be6f547a79ee4c9a582b95, type: 3}
   enemyColor: {r: 1, g: 0.3, b: 0.3, a: 1}
-  applyOverridesToPrefab: 1
+  applyOverridesToPrefab: 0
   usePooling: 1
   enemyPoolSize: 10
 --- !u!4 &1310329113

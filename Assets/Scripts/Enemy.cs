@@ -2,6 +2,34 @@ using System;
 using System.Collections.Generic;
 using UnityEngine;
 
+public enum EnemyAttackPriority
+{
+    TowerFirst,
+    DefenderFirst
+}
+
+public struct EnemyConfig
+{
+    public int TypeId;
+    public float Speed;
+    public float MaxHealth;
+    public float DamageToTower;
+    public float HeightOffset;
+    public float DefenderAttackRange;
+    public float DefenderAttackInterval;
+    public float DamageToDefender;
+    public float TowerAttackRange;
+    public float TowerAttackInterval;
+    public LayerMask DefenderTargetMask;
+    public EnemyAttackPriority AttackPriority;
+    public float DamageTakenMultiplier;
+    public bool EnrageOnLowHealth;
+    public float EnrageHealthFraction;
+    public float EnrageSpeedMultiplier;
+    public float EnrageDamageMultiplier;
+    public float EnrageAttackIntervalMultiplier;
+}
+
 public class Enemy : MonoBehaviour
 {
     [Header("Stats")]
@@ -9,6 +37,8 @@ public class Enemy : MonoBehaviour
     [SerializeField] private float moveSpeed = 2f;
     [SerializeField] private float damageToTower = 1f;
     [SerializeField] private float heightOffset = 0.5f;
+    [SerializeField] private float turnSpeed = 10f;
+    [SerializeField] private float healthBarExtraHeight = 0.3f;
 
     [Header("Tower Attack")]
     [SerializeField] private float towerAttackRange = 1.4f;
@@ -22,6 +52,11 @@ public class Enemy : MonoBehaviour
     [SerializeField, Min(1)] private int defenderQueryBufferSize = 12;
 
     private float currentHealth;
+    private float baseMoveSpeed;
+    private float baseDamageToTower;
+    private float baseDamageToDefender;
+    private float baseTowerAttackInterval;
+    private float baseDefenderAttackInterval;
     private IReadOnlyList<Vector3> path;
     private int pathIndex;
     private TowerHealth tower;
@@ -30,10 +65,26 @@ public class Enemy : MonoBehaviour
     private float towerAttackTimer;
     private bool reachedTower;
     private bool isDead;
+    private bool isEnraged;
     private Collider[] defenderHits;
     private Action<Enemy> releaseAction;
+    private EnemyAttackPriority attackPriority;
+    private float damageTakenMultiplier = 1f;
+    private bool enrageOnLowHealth;
+    private float enrageHealthFraction;
+    private float enrageSpeedMultiplier;
+    private float enrageDamageMultiplier;
+    private float enrageAttackIntervalMultiplier;
+    private int typeId = -1;
+    private EnemyHealthBar healthBar;
 
     public event Action<Enemy> Died;
+    public int TypeId => typeId;
+
+    public void AssignTypeId(int id)
+    {
+        typeId = id;
+    }
 
     private void Awake()
     {
@@ -42,33 +93,48 @@ public class Enemy : MonoBehaviour
         defenderHits = new Collider[Mathf.Max(1, defenderQueryBufferSize)];
     }
 
-    public void Initialize(IReadOnlyList<Vector3> pathPoints, TowerHealth towerRef, float speed, float health, float damage, float offset,
-        float defenderRange, float defenderInterval, float defenderDamage, float towerRange, float towerInterval, LayerMask defenderMask)
+    public void Initialize(IReadOnlyList<Vector3> pathPoints, TowerHealth towerRef, EnemyConfig config)
     {
         path = pathPoints;
         tower = towerRef;
-        moveSpeed = speed;
-        maxHealth = health;
-        currentHealth = health;
-        damageToTower = damage;
-        heightOffset = offset;
-        defenderAttackRange = defenderRange;
-        defenderAttackInterval = defenderInterval;
-        damageToDefender = defenderDamage;
-        towerAttackRange = towerRange;
-        towerAttackInterval = towerInterval;
-        defenderTargetMask = defenderMask;
+        typeId = config.TypeId;
+        moveSpeed = config.Speed;
+        maxHealth = config.MaxHealth;
+        currentHealth = config.MaxHealth;
+        damageToTower = config.DamageToTower;
+        heightOffset = config.HeightOffset;
+        defenderAttackRange = config.DefenderAttackRange;
+        defenderAttackInterval = config.DefenderAttackInterval;
+        damageToDefender = config.DamageToDefender;
+        towerAttackRange = config.TowerAttackRange;
+        towerAttackInterval = config.TowerAttackInterval;
+        defenderTargetMask = config.DefenderTargetMask;
+        attackPriority = config.AttackPriority;
+        damageTakenMultiplier = Mathf.Max(0.05f, config.DamageTakenMultiplier);
+        enrageOnLowHealth = config.EnrageOnLowHealth;
+        enrageHealthFraction = Mathf.Clamp01(config.EnrageHealthFraction);
+        enrageSpeedMultiplier = Mathf.Max(0.1f, config.EnrageSpeedMultiplier);
+        enrageDamageMultiplier = Mathf.Max(0.1f, config.EnrageDamageMultiplier);
+        enrageAttackIntervalMultiplier = Mathf.Max(0.1f, config.EnrageAttackIntervalMultiplier);
+        baseMoveSpeed = moveSpeed;
+        baseDamageToTower = damageToTower;
+        baseDamageToDefender = damageToDefender;
+        baseTowerAttackInterval = towerAttackInterval;
+        baseDefenderAttackInterval = defenderAttackInterval;
         pathIndex = 0;
         attackTimer = 0f;
         towerAttackTimer = 0f;
         defenderTarget = null;
         reachedTower = false;
         isDead = false;
+        isEnraged = false;
 
         if (path != null && path.Count > 0)
         {
             transform.position = path[0] + Vector3.up * heightOffset;
         }
+
+        ConfigureHealthBar();
     }
 
     public void SetReleaseAction(Action<Enemy> release)
@@ -83,17 +149,35 @@ public class Enemy : MonoBehaviour
             return;
         }
 
-        if (TryAttackTower())
-        {
-            return;
-        }
+        UpdateEnrageIfNeeded();
 
-        if (TryAttackDefender())
+        if (attackPriority == EnemyAttackPriority.DefenderFirst)
         {
-            return;
+            if (TryAttackDefender())
+            {
+                return;
+            }
+
+            if (TryAttackTower())
+            {
+                return;
+            }
+        }
+        else
+        {
+            if (TryAttackTower())
+            {
+                return;
+            }
+
+            if (TryAttackDefender())
+            {
+                return;
+            }
         }
 
         Vector3 target = path[pathIndex] + Vector3.up * heightOffset;
+        FaceTowards(target);
         transform.position = Vector3.MoveTowards(transform.position, target, moveSpeed * Time.deltaTime);
 
         if ((transform.position - target).sqrMagnitude < 0.01f)
@@ -118,13 +202,19 @@ public class Enemy : MonoBehaviour
             return;
         }
 
-        currentHealth -= amount;
+        float adjusted = amount * damageTakenMultiplier;
+        currentHealth -= adjusted;
+        UpdateHealthBar();
         if (currentHealth <= 0f)
         {
             isDead = true;
             Died?.Invoke(this);
             GameManager.Instance?.OnEnemyKilled();
             Release();
+        }
+        else
+        {
+            UpdateEnrageIfNeeded();
         }
     }
 
@@ -148,6 +238,7 @@ public class Enemy : MonoBehaviour
             return false;
         }
 
+        FaceTowards(defenderTarget.transform.position);
         attackTimer -= Time.deltaTime;
         if (attackTimer <= 0f)
         {
@@ -172,6 +263,7 @@ public class Enemy : MonoBehaviour
             return false;
         }
 
+        FaceTowards(tower.transform.position);
         towerAttackTimer -= Time.deltaTime;
         if (towerAttackTimer <= 0f)
         {
@@ -185,6 +277,120 @@ public class Enemy : MonoBehaviour
     private DefenderHealth FindDefenderInRange()
     {
         return TargetingUtils.FindClosestTarget<DefenderHealth>(transform.position, defenderAttackRange, defenderTargetMask, defenderHits);
+    }
+
+    private void FaceTowards(Vector3 worldPosition)
+    {
+        Vector3 direction = worldPosition - transform.position;
+        direction.y = 0f;
+        if (direction.sqrMagnitude < 0.0001f)
+        {
+            return;
+        }
+
+        Quaternion targetRotation = Quaternion.LookRotation(direction);
+        transform.rotation = Quaternion.Slerp(transform.rotation, targetRotation, turnSpeed * Time.deltaTime);
+    }
+
+    private void UpdateEnrageIfNeeded()
+    {
+        if (!enrageOnLowHealth || isEnraged || maxHealth <= 0f)
+        {
+            return;
+        }
+
+        if (currentHealth / maxHealth > enrageHealthFraction)
+        {
+            return;
+        }
+
+        isEnraged = true;
+        moveSpeed = baseMoveSpeed * enrageSpeedMultiplier;
+        damageToTower = baseDamageToTower * enrageDamageMultiplier;
+        damageToDefender = baseDamageToDefender * enrageDamageMultiplier;
+        towerAttackInterval = baseTowerAttackInterval * enrageAttackIntervalMultiplier;
+        defenderAttackInterval = baseDefenderAttackInterval * enrageAttackIntervalMultiplier;
+    }
+
+    private void ConfigureHealthBar()
+    {
+        float barHeight = CalculateHealthBarHeight();
+        EnsureHealthBar();
+        if (healthBar == null)
+        {
+            return;
+        }
+
+        healthBar.SetOffset(barHeight);
+        healthBar.Initialize(maxHealth);
+    }
+
+    private void UpdateHealthBar()
+    {
+        if (healthBar != null)
+        {
+            healthBar.SetHealth(currentHealth);
+        }
+    }
+
+    private void EnsureHealthBar()
+    {
+        if (healthBar != null)
+        {
+            return;
+        }
+
+        Transform existing = transform.Find("HealthBar");
+        if (existing != null)
+        {
+            healthBar = existing.GetComponent<EnemyHealthBar>();
+            if (healthBar == null)
+            {
+                healthBar = existing.gameObject.AddComponent<EnemyHealthBar>();
+            }
+            LayerUtils.SetLayerRecursive(healthBar.gameObject, gameObject.layer);
+            return;
+        }
+
+        GameObject barObject = new GameObject("HealthBar");
+        barObject.transform.SetParent(transform, false);
+        healthBar = barObject.AddComponent<EnemyHealthBar>();
+        LayerUtils.SetLayerRecursive(barObject, gameObject.layer);
+    }
+
+    private float CalculateHealthBarHeight()
+    {
+        float height = heightOffset + healthBarExtraHeight;
+        Renderer[] renderers = GetComponentsInChildren<Renderer>();
+        if (renderers == null || renderers.Length == 0)
+        {
+            return height;
+        }
+
+        float top = float.MinValue;
+        for (int i = 0; i < renderers.Length; i++)
+        {
+            Renderer renderer = renderers[i];
+            if (renderer == null)
+            {
+                continue;
+            }
+
+            if (renderer.GetComponentInParent<EnemyHealthBar>() != null)
+            {
+                continue;
+            }
+
+            top = Mathf.Max(top, renderer.bounds.max.y);
+        }
+
+        if (top > float.MinValue)
+        {
+            float localTop = top - transform.position.y;
+            height = Mathf.Max(height, localTop + 0.2f);
+        }
+
+        return height;
     }
 
     private void Release()

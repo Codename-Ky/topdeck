@@ -9,6 +9,10 @@ public class DefenderAttack : MonoBehaviour
     [SerializeField] private LayerMask targetMask = ~0;
     [SerializeField, Min(1)] private int queryBufferSize = 24;
 
+    [Header("Projectile")]
+    [SerializeField] private bool useProjectiles = true;
+    [SerializeField] private Vector3 projectileSpawnOffset = Vector3.up * 0.5f;
+
     private float cooldown;
     private Collider[] hitBuffer;
 
@@ -42,7 +46,15 @@ public class DefenderAttack : MonoBehaviour
         Enemy target = FindTarget();
         if (target != null)
         {
-            target.TakeDamage(damagePerShot);
+            if (useProjectiles && ProjectileManager.Instance != null)
+            {
+                Vector3 spawnPos = transform.position + projectileSpawnOffset;
+                ProjectileManager.Instance.FireProjectile(spawnPos, target, damagePerShot);
+            }
+            else
+            {
+                target.TakeDamage(damagePerShot);
+            }
             cooldown = attackInterval;
         }
     }

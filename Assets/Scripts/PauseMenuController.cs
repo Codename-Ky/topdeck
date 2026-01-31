@@ -4,6 +4,9 @@ using UnityEngine.UIElements;
 
 public class PauseMenuController : MonoBehaviour
 {
+    private const Key DefaultToggleKey = Key.Escape;
+    private const Key DefaultAlternateToggleKey = Key.P;
+
     [Header("References")]
     [SerializeField] private UIDocument hudDocument;
 
@@ -13,8 +16,8 @@ public class PauseMenuController : MonoBehaviour
     [SerializeField] private string quitButtonName = "quit-button";
 
     [Header("Input")]
-    [SerializeField] private Key toggleKey = Key.Escape;
-    [SerializeField] private Key alternateToggleKey = Key.P;
+    [SerializeField] private Key toggleKey = DefaultToggleKey;
+    [SerializeField] private Key alternateToggleKey = DefaultAlternateToggleKey;
 
     private VisualElement pauseOverlay;
     private Button resumeButton;
@@ -28,6 +31,8 @@ public class PauseMenuController : MonoBehaviour
         {
             hudDocument = FindFirstObjectByType<UIDocument>();
         }
+
+        NormalizeToggleKeys();
     }
 
     private void OnEnable()
@@ -62,13 +67,7 @@ public class PauseMenuController : MonoBehaviour
             CacheUi();
         }
 
-        Keyboard keyboard = Keyboard.current;
-        if (keyboard == null)
-        {
-            return;
-        }
-
-        if (keyboard[toggleKey].wasPressedThisFrame || keyboard[alternateToggleKey].wasPressedThisFrame)
+        if (WasTogglePressed())
         {
             TogglePause();
         }
@@ -140,6 +139,59 @@ public class PauseMenuController : MonoBehaviour
 
         SetOverlayVisible(isPaused);
     }
+
+    private bool WasTogglePressed()
+    {
+#if ENABLE_INPUT_SYSTEM
+        Keyboard keyboard = Keyboard.current;
+        if (keyboard != null)
+        {
+            if (keyboard[toggleKey].wasPressedThisFrame || keyboard[alternateToggleKey].wasPressedThisFrame)
+            {
+                return true;
+            }
+        }
+#endif
+
+#if ENABLE_LEGACY_INPUT_MANAGER
+        if (Input.GetKeyDown(KeyCode.Escape) || Input.GetKeyDown(KeyCode.P))
+        {
+            return true;
+        }
+#endif
+
+        return false;
+    }
+
+    private void NormalizeToggleKeys()
+    {
+        if (toggleKey == (Key)KeyCode.Escape)
+        {
+            toggleKey = DefaultToggleKey;
+        }
+
+        if (alternateToggleKey == (Key)KeyCode.P)
+        {
+            alternateToggleKey = DefaultAlternateToggleKey;
+        }
+
+        if (toggleKey == Key.None)
+        {
+            toggleKey = DefaultToggleKey;
+        }
+
+        if (alternateToggleKey == Key.None)
+        {
+            alternateToggleKey = DefaultAlternateToggleKey;
+        }
+    }
+
+#if UNITY_EDITOR
+    private void OnValidate()
+    {
+        NormalizeToggleKeys();
+    }
+#endif
 
     private void TogglePause()
     {

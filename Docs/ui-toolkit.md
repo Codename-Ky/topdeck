@@ -33,11 +33,27 @@ The scene must include a `UIDocument` that points to the HUD assets.
 - `menu-overlay`
 - `game-over`
 
+Pause UI (`PauseMenuController`) uses:
+
+- `pause-overlay`
+- `resume-button`
+- `quit-button`
+
 ## Behavior
 
 - `TowerHud` updates health, money, and round labels from `TowerHealth` and `GameManager` events.
 - The `menu-overlay` is shown when `GameManager.IsGameOver` is true.
 - The HUD scales via `PanelSettings` using a 1920x1080 reference resolution and Match 0.5.
+
+## Pause Menu Behavior
+
+- Press `Esc` or `P` to toggle the pause menu.
+- Resume button unpauses the game (restores `Time.timeScale` to 1).
+- Quit button exits the player or stops Play mode in the Editor.
+
+## Input System Note
+
+Pause input uses the Input System (`UnityEngine.InputSystem.Keyboard`). Ensure Project Settings -> Player -> Active Input Handling includes the Input System package.
 
 ## Troubleshooting
 

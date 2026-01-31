@@ -15,6 +15,10 @@
             <ui:VisualElement class="menu-panel">
                 <ui:Label name="game-over" class="menu-title" text="GAME OVER" />
                 <ui:Label name="menu-subtitle" class="menu-subtitle" text="The tower has fallen." />
+                <ui:VisualElement class="menu-button-group">
+                    <ui:Button name="restart-button" class="menu-button menu-button--primary" text="Restart" />
+                    <ui:Button name="exit-button" class="menu-button menu-button--secondary" text="Exit" />
+                </ui:VisualElement>
             </ui:VisualElement>
         </ui:VisualElement>
 

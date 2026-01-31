@@ -1,4 +1,5 @@
 using UnityEngine;
+using UnityEngine.SceneManagement;
 using UnityEngine.UIElements;
 
 public class TowerHud : MonoBehaviour
@@ -15,6 +16,8 @@ public class TowerHud : MonoBehaviour
     [SerializeField] private string roundLabelName = "round";
     [SerializeField] private string menuOverlayName = "menu-overlay";
     [SerializeField] private string gameOverLabelName = "game-over";
+    [SerializeField] private string restartButtonName = "restart-button";
+    [SerializeField] private string exitButtonName = "exit-button";
 
     private GameManager boundGameManager;
     private TowerHealth boundTower;
@@ -23,6 +26,8 @@ public class TowerHud : MonoBehaviour
     private Label roundLabel;
     private VisualElement menuOverlay;
     private Label gameOverLabel;
+    private Button restartButton;
+    private Button exitButton;
 
     private void Awake()
     {
@@ -43,6 +48,7 @@ public class TowerHud : MonoBehaviour
     private void OnDisable()
     {
         Unbind();
+        UnbindButtons();
     }
 
     private void Bind()
@@ -189,12 +195,15 @@ public class TowerHud : MonoBehaviour
         roundLabel = root.Q<Label>(roundLabelName);
         menuOverlay = root.Q<VisualElement>(menuOverlayName);
         gameOverLabel = root.Q<Label>(gameOverLabelName);
+        restartButton = root.Q<Button>(restartButtonName);
+        exitButton = root.Q<Button>(exitButtonName);
 
         if (gameOverLabel != null && string.IsNullOrEmpty(gameOverLabel.text))
         {
             gameOverLabel.text = "GAME OVER";
         }
 
+        BindButtons();
         SetMenuVisible(GameManager.IsGameOver);
     }
 
@@ -205,5 +214,56 @@ public class TowerHud : MonoBehaviour
             return;
         }
         menuOverlay.style.display = isVisible ? DisplayStyle.Flex : DisplayStyle.None;
+    }
+
+    private void BindButtons()
+    {
+        if (restartButton != null)
+        {
+            restartButton.clicked -= HandleRestartClicked;
+            restartButton.clicked += HandleRestartClicked;
+        }
+
+        if (exitButton != null)
+        {
+            exitButton.clicked -= HandleExitClicked;
+            exitButton.clicked += HandleExitClicked;
+        }
+    }
+
+    private void UnbindButtons()
+    {
+        if (restartButton != null)
+        {
+            restartButton.clicked -= HandleRestartClicked;
+        }
+
+        if (exitButton != null)
+        {
+            exitButton.clicked -= HandleExitClicked;
+        }
+    }
+
+    private void HandleRestartClicked()
+    {
+        Time.timeScale = 1f;
+        Scene activeScene = SceneManager.GetActiveScene();
+        if (activeScene.buildIndex >= 0)
+        {
+            SceneManager.LoadScene(activeScene.buildIndex);
+        }
+        else
+        {
+            SceneManager.LoadScene(activeScene.name);
+        }
+    }
+
+    private void HandleExitClicked()
+    {
+#if UNITY_EDITOR
+        UnityEditor.EditorApplication.isPlaying = false;
+#else
+        Application.Quit();
+#endif
     }
 }

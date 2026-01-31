@@ -4,7 +4,11 @@ public class EnemyHealthBar : MonoBehaviour
 {
     [Header("Layout")]
     [SerializeField] private Vector3 localOffset = new Vector3(0f, 0.9f, 0f);
-    [SerializeField] private Vector3 barSize = new Vector3(0.8f, 0.1f, 0.1f);
+    [SerializeField] private Vector3 barSize = new Vector3(0.95f, 0.12f, 0.06f);
+    [SerializeField, Range(0.6f, 1f)] private float fillWidthPercent = 0.9f;
+    [SerializeField, Range(0.4f, 1f)] private float fillHeightPercent = 0.7f;
+    [SerializeField, Range(0.2f, 1f)] private float fillDepthPercent = 0.6f;
+    [SerializeField] private float fillDepthOffset = -0.03f;
     [SerializeField] private bool billboard = true;
 
     [Header("Colors")]
@@ -15,8 +19,12 @@ public class EnemyHealthBar : MonoBehaviour
 
     private Transform fillTransform;
     private Renderer fillRenderer;
+    private Renderer backgroundRenderer;
     private float maxHealth = 1f;
     private Camera cachedCamera;
+    private float fillMaxWidth;
+
+    private static Material unlitMaterial;
 
     private void Awake()
     {
@@ -46,22 +54,32 @@ public class EnemyHealthBar : MonoBehaviour
     public void Initialize(float maxHealthValue)
     {
         maxHealth = Mathf.Max(1f, maxHealthValue);
+        if (fillTransform == null)
+        {
+            BuildIfNeeded();
+        }
         ApplyOffset();
         SetHealth(maxHealthValue);
     }
 
     public void SetHealth(float currentHealth)
     {
+        if (fillTransform == null)
+        {
+            BuildIfNeeded();
+        }
+
         float normalized = Mathf.Clamp01(currentHealth / maxHealth);
 
         if (fillTransform != null)
         {
+            float width = Mathf.Max(0.001f, normalized * fillMaxWidth);
             Vector3 scale = fillTransform.localScale;
-            scale.x = Mathf.Max(0.001f, normalized);
+            scale.x = width;
             fillTransform.localScale = scale;
 
             Vector3 position = fillTransform.localPosition;
-            position.x = (normalized - 1f) * 0.5f * barSize.x;
+            position.x = (width - fillMaxWidth) * 0.5f;
             fillTransform.localPosition = position;
         }
 
@@ -87,41 +105,81 @@ public class EnemyHealthBar : MonoBehaviour
 
     private void BuildIfNeeded()
     {
-        if (transform.childCount == 0)
+        Transform background = transform.Find("Background");
+        if (background == null)
         {
-            GameObject background = GameObject.CreatePrimitive(PrimitiveType.Cube);
-            background.name = "Background";
-            background.transform.SetParent(transform, false);
-            background.transform.localScale = barSize;
-            background.transform.localPosition = Vector3.zero;
-            RemoveCollider(background);
-            var backgroundRenderer = background.GetComponent<Renderer>();
-            RendererUtils.SetColor(backgroundRenderer, backgroundColor);
-
-            GameObject fill = GameObject.CreatePrimitive(PrimitiveType.Cube);
-            fill.name = "Fill";
-            fill.transform.SetParent(transform, false);
-            fill.transform.localScale = new Vector3(barSize.x, barSize.y * 0.9f, barSize.z * 0.9f);
-            fill.transform.localPosition = new Vector3(-barSize.x * 0.5f, 0f, 0f);
-            RemoveCollider(fill);
-            fillRenderer = fill.GetComponent<Renderer>();
-            fillTransform = fill.transform;
+            GameObject backgroundObject = GameObject.CreatePrimitive(PrimitiveType.Cube);
+            backgroundObject.name = "Background";
+            backgroundObject.transform.SetParent(transform, false);
+            background = backgroundObject.transform;
         }
-        else
+        RemoveCollider(background.gameObject);
+
+        Transform fill = transform.Find("Fill");
+        if (fill == null)
         {
-            Transform fill = transform.Find("Fill");
-            if (fill != null)
-            {
-                fillTransform = fill;
-                fillRenderer = fill.GetComponent<Renderer>();
-            }
-
-            Transform background = transform.Find("Background");
-            if (background != null)
-            {
-                background.localScale = barSize;
-            }
+            GameObject fillObject = GameObject.CreatePrimitive(PrimitiveType.Cube);
+            fillObject.name = "Fill";
+            fillObject.transform.SetParent(transform, false);
+            fill = fillObject.transform;
         }
+        RemoveCollider(fill.gameObject);
+
+        background.localPosition = Vector3.zero;
+        background.localScale = barSize;
+        backgroundRenderer = background.GetComponent<Renderer>();
+        ApplyMaterial(backgroundRenderer);
+        RendererUtils.SetColor(backgroundRenderer, backgroundColor);
+
+        fillTransform = fill;
+        fillRenderer = fill.GetComponent<Renderer>();
+        ApplyMaterial(fillRenderer);
+
+        float widthPercent = Mathf.Clamp(fillWidthPercent, 0.1f, 1f);
+        float heightPercent = Mathf.Clamp(fillHeightPercent, 0.1f, 1f);
+        float depthPercent = Mathf.Clamp(fillDepthPercent, 0.1f, 1f);
+        fillMaxWidth = barSize.x * widthPercent;
+        fillTransform.localScale = new Vector3(fillMaxWidth, barSize.y * heightPercent, barSize.z * depthPercent);
+        fillTransform.localPosition = new Vector3(0f, 0f, fillDepthOffset);
+    }
+
+    private static void ApplyMaterial(Renderer renderer)
+    {
+        if (renderer == null)
+        {
+            return;
+        }
+
+        Material material = GetUnlitMaterial();
+        if (material != null)
+        {
+            renderer.sharedMaterial = material;
+        }
+    }
+
+    private static Material GetUnlitMaterial()
+    {
+        if (unlitMaterial != null)
+        {
+            return unlitMaterial;
+        }
+
+        Shader shader = Shader.Find("Universal Render Pipeline/Unlit");
+        if (shader == null)
+        {
+            shader = Shader.Find("Unlit/Color");
+        }
+
+        if (shader == null)
+        {
+            return null;
+        }
+
+        unlitMaterial = new Material(shader)
+        {
+            hideFlags = HideFlags.HideAndDontSave
+        };
+        return unlitMaterial;
     }
 
     private static void RemoveCollider(GameObject target)

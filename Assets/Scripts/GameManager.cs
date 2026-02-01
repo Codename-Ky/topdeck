@@ -14,7 +14,6 @@ public class GameManager : MonoBehaviour
 
     [Header("Economy")]
     [SerializeField] private int startingMoney = 200;
-    [SerializeField] private int defenderCost = 100;
     [SerializeField] private int rewardPerKill = 50;
 
     [Header("Rounds")]
@@ -155,11 +154,6 @@ public class GameManager : MonoBehaviour
         roundQueued = false;
         GameStarted?.Invoke();
         BeginNextRound();
-    }
-
-    public bool TryPurchaseDefender()
-    {
-        return TrySpend(defenderCost);
     }
 
     public bool TryPurchaseDefender(int cost)

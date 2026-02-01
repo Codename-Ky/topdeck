@@ -37,14 +37,22 @@
 
 .hud-left {
     flex-direction: column;
-    row-gap: 6px;
     align-items: flex-start;
 }
 
 .hud-right {
     flex-direction: column;
-    row-gap: 6px;
     align-items: flex-end;
+}
+
+.hud-left > *,
+.hud-right > * {
+    margin-top: 6px;
+}
+
+.hud-left > :first-child,
+.hud-right > :first-child {
+    margin-top: 0;
 }
 
 .hud-label {
@@ -65,13 +73,24 @@
 }
 
 .defender-panel {
-    row-gap: 10px;
 }
 
 .defender-options {
     flex-direction: row;
-    column-gap: 10px;
     flex-wrap: wrap;
+}
+
+.defender-panel > * {
+    margin-top: 10px;
+}
+
+.defender-panel > :first-child {
+    margin-top: 0;
+}
+
+.defender-options > * {
+    margin-right: 10px;
+    margin-bottom: 10px;
 }
 
 .defender-option {
@@ -118,7 +137,6 @@
     padding-bottom: 36px;
     min-width: 360px;
     align-items: center;
-    row-gap: 12px;
 }
 
 .menu-title {
@@ -144,9 +162,24 @@
 
 .menu-button-group {
     flex-direction: column;
-    row-gap: 12px;
     width: 100%;
+    margin-top: 0;
+}
+
+.menu-panel > * {
     margin-top: 12px;
+}
+
+.menu-panel > :first-child {
+    margin-top: 0;
+}
+
+.menu-button-group > * {
+    margin-top: 12px;
+}
+
+.menu-button-group > :first-child {
+    margin-top: 0;
 }
 
 .menu-button {

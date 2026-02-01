@@ -39,6 +39,10 @@ Pause UI (`PauseMenuController`) uses:
 - `resume-button`
 - `quit-button`
 
+Defender selection UI (`TowerHud`) uses:
+
+- `defender-options`
+
 Start UI (`TowerHud`) uses:
 
 - `start-overlay`

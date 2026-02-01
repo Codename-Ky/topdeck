@@ -39,9 +39,11 @@ Pause UI (`PauseMenuController`) uses:
 - `resume-button`
 - `quit-button`
 
-Defender selection UI (`TowerHud`) uses:
+Defender context menu (`DefenderContextMenuController`) uses:
 
-- `defender-options`
+- `defender-menu`
+- `defender-menu-title`
+- `defender-menu-buttons`
 
 Start UI (`TowerHud`) uses:
 
@@ -51,11 +53,13 @@ Start UI (`TowerHud`) uses:
 
 ## Defender Selection Data
 
-- The defender selector is populated from `DefenderPlacementManager.DefenderTypes`.
+- The placement menu is populated from `DefenderPlacementManager.DefenderTypes`.
 - If the list is empty, the manager builds two fallback definitions.
 - Basic Ally uses the "Basic Defender (Fallback)" fields.
 - Advanced Ally is derived from the basic stats using the "Advanced Defender (Fallback)" multipliers and `advancedDefenderPrefab`.
 - Assign `advancedDefenderPrefab` in the scene to ensure the advanced ally spawns its unique prefab.
+- Upgrade prefabs/costs are sourced from the fallback upgrade fields when no upgrade steps are defined.
+- The upgrade/sell context menu is driven by `DefenderContextMenuController`.
 
 ## Behavior
 

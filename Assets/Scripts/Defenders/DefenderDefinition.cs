@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using UnityEngine;
 
 [Serializable]
@@ -26,6 +27,9 @@ public class DefenderDefinition
     [SerializeField, Min(0f)] private float moveRadius = 0.8f;
     [SerializeField, Min(0f)] private float moveSpeed = 1.5f;
     [SerializeField, Min(0f)] private float turnSpeed = 10f;
+
+    [Header("Upgrades")]
+    [SerializeField] private List<DefenderUpgradeStep> upgradeSteps = new List<DefenderUpgradeStep>();
 
     public string Id
     {
@@ -117,6 +121,13 @@ public class DefenderDefinition
         set => turnSpeed = value;
     }
 
+    public IReadOnlyList<DefenderUpgradeStep> UpgradeSteps => upgradeSteps;
+
+    public void SetUpgradeSteps(List<DefenderUpgradeStep> steps)
+    {
+        upgradeSteps = steps ?? new List<DefenderUpgradeStep>();
+    }
+
     public void ApplyVisualOverrides(GameObject defenderObject)
     {
         if (defenderObject == null)
@@ -178,7 +189,8 @@ public class DefenderDefinition
             damage = Mathf.Max(0f, damage * damageMultiplier),
             moveRadius = Mathf.Max(0f, moveRadius * moveRadiusMultiplier),
             moveSpeed = Mathf.Max(0f, moveSpeed * moveSpeedMultiplier),
-            turnSpeed = Mathf.Max(0f, turnSpeed * turnSpeedMultiplier)
+            turnSpeed = Mathf.Max(0f, turnSpeed * turnSpeedMultiplier),
+            upgradeSteps = upgradeSteps != null ? new List<DefenderUpgradeStep>(upgradeSteps) : new List<DefenderUpgradeStep>()
         };
     }
 }

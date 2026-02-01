@@ -19,6 +19,11 @@
     align-items: flex-start;
 }
 
+.hud-bottom {
+    margin-top: 20px;
+    align-items: flex-start;
+}
+
 .hud-panel {
     background-color: rgba(12, 14, 18, 0.6);
     border-radius: 12px;
@@ -52,6 +57,43 @@
 .hud-label--primary {
     font-size: 30px;
     -unity-font-style: bold;
+}
+
+.hud-label--section {
+    font-size: 20px;
+    -unity-font-style: bold;
+}
+
+.defender-panel {
+    row-gap: 10px;
+}
+
+.defender-options {
+    flex-direction: row;
+    column-gap: 10px;
+    flex-wrap: wrap;
+}
+
+.defender-option {
+    height: 36px;
+    border-radius: 8px;
+    border-width: 1px;
+    border-color: rgba(255, 255, 255, 0.12);
+    background-color: rgba(20, 24, 32, 0.9);
+    color: #f5f7fb;
+    -unity-font-style: bold;
+    padding-left: 12px;
+    padding-right: 12px;
+}
+
+.defender-option--selected {
+    background-color: rgba(88, 165, 255, 0.95);
+    border-color: rgba(88, 165, 255, 1);
+    color: #0d1320;
+}
+
+.defender-option:disabled {
+    opacity: 0.45;
 }
 
 .menu-overlay {

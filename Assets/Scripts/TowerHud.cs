@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 using UnityEngine.UIElements;
@@ -21,6 +22,7 @@ public class TowerHud : MonoBehaviour
     [SerializeField] private string startOverlayName = "start-overlay";
     [SerializeField] private string startButtonName = "start-button";
     [SerializeField] private string startExitButtonName = "start-exit-button";
+    [SerializeField] private string defenderOptionsName = "defender-options";
 
     private GameManager boundGameManager;
     private TowerHealth boundTower;
@@ -34,6 +36,10 @@ public class TowerHud : MonoBehaviour
     private VisualElement startOverlay;
     private Button startButton;
     private Button startExitButton;
+    private VisualElement defenderOptions;
+    private readonly List<Button> defenderButtons = new List<Button>();
+    private readonly Dictionary<Button, DefenderDefinition> defenderButtonLookup = new Dictionary<Button, DefenderDefinition>();
+    private DefenderPlacementManager boundPlacementManager;
 
     private void Awake()
     {
@@ -92,6 +98,17 @@ public class TowerHud : MonoBehaviour
             boundGameManager.GameOverTriggered += HandleGameOverTriggered;
         }
 
+        if (boundPlacementManager != null)
+        {
+            boundPlacementManager.DefenderSelectionChanged -= HandleDefenderSelectionChanged;
+        }
+
+        boundPlacementManager = FindFirstObjectByType<DefenderPlacementManager>();
+        if (boundPlacementManager != null)
+        {
+            boundPlacementManager.DefenderSelectionChanged += HandleDefenderSelectionChanged;
+        }
+
         RefreshAll();
     }
 
@@ -110,6 +127,12 @@ public class TowerHud : MonoBehaviour
             boundGameManager.GameStarted -= HandleGameStarted;
             boundGameManager.GameOverTriggered -= HandleGameOverTriggered;
             boundGameManager = null;
+        }
+
+        if (boundPlacementManager != null)
+        {
+            boundPlacementManager.DefenderSelectionChanged -= HandleDefenderSelectionChanged;
+            boundPlacementManager = null;
         }
     }
 
@@ -135,6 +158,8 @@ public class TowerHud : MonoBehaviour
 
         SetMenuVisible(GameManager.IsGameOver);
         SetStartVisible(!GameManager.IsGameOver && !GameManager.IsGameStarted);
+        BuildDefenderButtons();
+        UpdateDefenderButtonStates();
     }
 
     private void HandleTowerHealthChanged(float health)
@@ -153,6 +178,7 @@ public class TowerHud : MonoBehaviour
             return;
         }
         moneyLabel.text = "Money: $" + money;
+        UpdateDefenderButtonStates();
     }
 
     private void HandleRoundChanged(int round, bool inProgress)
@@ -234,6 +260,7 @@ public class TowerHud : MonoBehaviour
         startOverlay = root.Q<VisualElement>(startOverlayName);
         startButton = root.Q<Button>(startButtonName);
         startExitButton = root.Q<Button>(startExitButtonName);
+        defenderOptions = root.Q<VisualElement>(defenderOptionsName);
 
         if (gameOverLabel != null && string.IsNullOrEmpty(gameOverLabel.text))
         {
@@ -243,6 +270,8 @@ public class TowerHud : MonoBehaviour
         BindButtons();
         SetMenuVisible(GameManager.IsGameOver);
         SetStartVisible(!GameManager.IsGameOver && !GameManager.IsGameStarted);
+        BuildDefenderButtons();
+        UpdateDefenderButtonStates();
     }
 
     private void SetMenuVisible(bool isVisible)
@@ -311,6 +340,94 @@ public class TowerHud : MonoBehaviour
         {
             startExitButton.clicked -= HandleExitClicked;
         }
+    }
+
+    private void BuildDefenderButtons()
+    {
+        if (defenderOptions == null)
+        {
+            return;
+        }
+
+        defenderOptions.Clear();
+        defenderButtons.Clear();
+        defenderButtonLookup.Clear();
+
+        if (boundPlacementManager == null || boundPlacementManager.DefenderTypes == null)
+        {
+            return;
+        }
+
+        foreach (DefenderDefinition definition in boundPlacementManager.DefenderTypes)
+        {
+            if (definition == null)
+            {
+                continue;
+            }
+
+            Button button = new Button();
+            button.text = GetDefenderButtonLabel(definition);
+            button.AddToClassList("defender-option");
+            button.clicked += () => HandleDefenderButtonClicked(definition);
+
+            defenderOptions.Add(button);
+            defenderButtons.Add(button);
+            defenderButtonLookup[button] = definition;
+        }
+
+        UpdateDefenderButtonStates();
+    }
+
+    private void HandleDefenderButtonClicked(DefenderDefinition definition)
+    {
+        if (boundPlacementManager == null || definition == null)
+        {
+            return;
+        }
+
+        boundPlacementManager.SelectDefender(definition);
+        UpdateDefenderButtonStates();
+    }
+
+    private void HandleDefenderSelectionChanged(DefenderDefinition definition)
+    {
+        UpdateDefenderButtonStates();
+    }
+
+    private void UpdateDefenderButtonStates()
+    {
+        if (defenderButtons.Count == 0)
+        {
+            return;
+        }
+
+        int currentMoney = boundGameManager != null ? boundGameManager.CurrentMoney : 0;
+        DefenderDefinition selected = boundPlacementManager != null ? boundPlacementManager.SelectedDefender : null;
+
+        foreach (Button button in defenderButtons)
+        {
+            if (!defenderButtonLookup.TryGetValue(button, out DefenderDefinition definition) || definition == null)
+            {
+                continue;
+            }
+
+            bool isSelected = definition == selected;
+            bool canAfford = definition.Cost <= currentMoney;
+            button.SetEnabled(canAfford || isSelected);
+            button.EnableInClassList("defender-option--selected", isSelected);
+            button.text = GetDefenderButtonLabel(definition);
+        }
+    }
+
+    private string GetDefenderButtonLabel(DefenderDefinition definition)
+    {
+        if (definition == null)
+        {
+            return "Defender";
+        }
+
+        string name = string.IsNullOrEmpty(definition.DisplayName) ? "Defender" : definition.DisplayName;
+        return $"{name} ${definition.Cost}";
     }
 
     private void HandleStartClicked()

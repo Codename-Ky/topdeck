@@ -11,6 +11,13 @@
             </ui:VisualElement>
         </ui:VisualElement>
 
+        <ui:VisualElement class="hud-bottom">
+            <ui:VisualElement class="hud-panel defender-panel">
+                <ui:Label name="defender-title" class="hud-label hud-label--section" text="Defenders" />
+                <ui:VisualElement name="defender-options" class="defender-options" />
+            </ui:VisualElement>
+        </ui:VisualElement>
+
         <ui:VisualElement name="menu-overlay" class="menu-overlay hidden">
             <ui:VisualElement class="menu-panel">
                 <ui:Label name="game-over" class="menu-title" text="GAME OVER" />

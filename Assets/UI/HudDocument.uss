@@ -48,12 +48,7 @@
 
 .hud-left > *,
 .hud-right > * {
-    margin-top: 6px;
-}
-
-.hud-left > :first-child,
-.hud-right > :first-child {
-    margin-top: 0;
+    margin-bottom: 6px;
 }
 
 .hud-label {
@@ -84,11 +79,7 @@
 }
 
 .defender-panel > * {
-    margin-top: 10px;
-}
-
-.defender-panel > :first-child {
-    margin-top: 0;
+    margin-bottom: 10px;
 }
 
 .defender-options > * {
@@ -170,19 +161,11 @@
 }
 
 .menu-panel > * {
-    margin-top: 12px;
-}
-
-.menu-panel > :first-child {
-    margin-top: 0;
+    margin-bottom: 12px;
 }
 
 .menu-button-group > * {
-    margin-top: 12px;
-}
-
-.menu-button-group > :first-child {
-    margin-top: 0;
+    margin-bottom: 12px;
 }
 
 .menu-button {

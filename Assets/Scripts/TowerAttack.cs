@@ -9,6 +9,11 @@ public class TowerAttack : MonoBehaviour
     [SerializeField] private LayerMask targetMask = ~0;
     [SerializeField, Min(1)] private int queryBufferSize = 32;
 
+    [Header("Rotation")]
+    [SerializeField] private bool rotateTowardsTarget = true;
+    [SerializeField] private bool rotateYawOnly = true;
+    [SerializeField, Min(0.1f)] private float rotationSpeed = 10f;
+
     [Header("Projectile")]
     [SerializeField] private bool useProjectiles = true;
     [SerializeField] private Vector3 projectileSpawnOffset = Vector3.up * 0.5f;
@@ -43,14 +48,19 @@ public class TowerAttack : MonoBehaviour
         }
 
         cooldown -= Time.deltaTime;
-        if (cooldown > 0f)
-        {
-            return;
-        }
-
         Enemy target = FindTarget();
         if (target != null)
         {
+            if (rotateTowardsTarget)
+            {
+                RotateTowardsTarget(target.transform.position);
+            }
+
+            if (cooldown > 0f)
+            {
+                return;
+            }
+
             if (useProjectiles && ProjectileManager.Instance != null)
             {
                 Vector3 spawnPos = transform.position + projectileSpawnOffset;
@@ -73,5 +83,23 @@ public class TowerAttack : MonoBehaviour
     {
         Gizmos.color = Color.cyan;
         Gizmos.DrawWireSphere(transform.position, range);
+    }
+
+    private void RotateTowardsTarget(Vector3 targetPosition)
+    {
+        Vector3 direction = targetPosition - transform.position;
+        if (rotateYawOnly)
+        {
+            direction.y = 0f;
+        }
+
+        if (direction.sqrMagnitude < 0.001f)
+        {
+            return;
+        }
+
+        Quaternion targetRotation = Quaternion.LookRotation(direction.normalized, Vector3.up);
+        float t = 1f - Mathf.Exp(-rotationSpeed * Time.deltaTime);
+        transform.rotation = Quaternion.Slerp(transform.rotation, targetRotation, t);
     }
 }

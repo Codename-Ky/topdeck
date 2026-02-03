@@ -183,6 +183,24 @@ public class TowerUpgradeManager : MonoBehaviour
 
         float newMaxHealth = Mathf.Max(0.1f, baseMaxHealth * step.HealthMultiplier);
         float newDamage = Mathf.Max(0f, baseDamage * step.DamageMultiplier);
+
+        if (towerHealth != null)
+        {
+            newMaxHealth = Mathf.Max(newMaxHealth, towerHealth.MaxHealth);
+        }
+
+        if (towerAttack != null)
+        {
+            newDamage = Mathf.Max(newDamage, towerAttack.DamagePerShot);
+        }
+
+        if (towerHealth != null && towerAttack != null
+            && Mathf.Approximately(newMaxHealth, towerHealth.MaxHealth)
+            && Mathf.Approximately(newDamage, towerAttack.DamagePerShot))
+        {
+            Debug.LogWarning("TowerUpgradeManager: Upgrade step did not increase tower stats. Check upgrade multipliers.");
+        }
+
         ApplyStats(newMaxHealth, newDamage);
     }
 

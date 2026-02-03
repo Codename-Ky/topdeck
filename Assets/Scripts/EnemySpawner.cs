@@ -151,6 +151,8 @@ public class EnemySpawner : MonoBehaviour
 
     [Header("Enemy Types")]
     [SerializeField] private EnemyTypeSettings[] enemyTypes;
+    [SerializeField, Range(0f, 1f)] private float threatBiasPerRound = 0.02f;
+    [SerializeField, Range(0f, 1f)] private float maxThreatBias = 0.35f;
 
     [Header("Visuals")]
     [SerializeField] private GameObject enemyPrefab;
@@ -179,6 +181,10 @@ public class EnemySpawner : MonoBehaviour
     private float roundEnemySpeed;
     private float roundDamageToTower;
     private float roundDamageToDefender;
+    private float roundSpawnInterval;
+    private int roundSpawnCountPerInterval = 1;
+    private float roundThreatBias;
+    private int currentRound = 1;
     private bool useTypeSpawning;
 
     public event Action<EnemySpawner> RoundCompleted;
@@ -192,6 +198,7 @@ public class EnemySpawner : MonoBehaviour
         enemyLayer = LayerMask.NameToLayer("Enemy");
         SetupEnemyTypes();
         WarmPool();
+        roundSpawnInterval = spawnInterval;
     }
 
     private void Start()
@@ -301,7 +308,7 @@ public class EnemySpawner : MonoBehaviour
             }
 
             timer += Time.deltaTime;
-            if (timer < spawnInterval)
+            if (timer < roundSpawnInterval)
             {
                 return;
             }
@@ -360,9 +367,10 @@ public class EnemySpawner : MonoBehaviour
         }
     }
 
-    public void StartRound(int enemyCount, float healthMultiplier, float speedMultiplier, float damageMultiplier)
+    public void StartRound(int roundNumber, int enemyCount, float healthMultiplier, float speedMultiplier, float damageMultiplier, float spawnIntervalMultiplier, int spawnPerInterval)
     {
         CachePaths();
+        currentRound = Mathf.Max(1, roundNumber);
         enemiesToSpawn = Mathf.Max(0, enemyCount);
         enemiesSpawned = 0;
         enemiesAlive = 0;
@@ -371,6 +379,9 @@ public class EnemySpawner : MonoBehaviour
         roundEnemySpeed = enemySpeed * speedMultiplier;
         roundDamageToTower = damageToTower * damageMultiplier;
         roundDamageToDefender = damageToDefender * damageMultiplier;
+        roundSpawnInterval = Mathf.Max(0.1f, spawnInterval * Mathf.Max(0.1f, spawnIntervalMultiplier));
+        roundSpawnCountPerInterval = Mathf.Max(1, spawnPerInterval);
+        roundThreatBias = Mathf.Clamp01(ComputeSoftCappedBonus(currentRound - 1, threatBiasPerRound, maxThreatBias));
         roundActive = enemiesToSpawn > 0;
         timer = 0f;
 
@@ -400,6 +411,7 @@ public class EnemySpawner : MonoBehaviour
         }
 
         int spawnCount = spawnOnePerInterval ? 1 : paths.Count;
+        spawnCount *= roundSpawnCountPerInterval;
         spawnCount = Mathf.Min(spawnCount, remaining);
 
         for (int i = 0; i < spawnCount; i++)
@@ -512,7 +524,7 @@ public class EnemySpawner : MonoBehaviour
         float totalWeight = 0f;
         for (int i = 0; i < validTypeIndices.Count; i++)
         {
-            totalWeight += Mathf.Max(0f, enemyTypes[validTypeIndices[i]].spawnWeight);
+            totalWeight += GetWeightedSpawnWeight(validTypeIndices[i]);
         }
 
         if (totalWeight <= 0f)
@@ -525,7 +537,7 @@ public class EnemySpawner : MonoBehaviour
         for (int i = 0; i < validTypeIndices.Count; i++)
         {
             int typeIndex = validTypeIndices[i];
-            cumulative += Mathf.Max(0f, enemyTypes[typeIndex].spawnWeight);
+            cumulative += GetWeightedSpawnWeight(typeIndex);
             if (roll <= cumulative)
             {
                 return typeIndex;
@@ -533,6 +545,40 @@ public class EnemySpawner : MonoBehaviour
         }
 
         return validTypeIndices[validTypeIndices.Count - 1];
+    }
+
+    private float GetWeightedSpawnWeight(int typeIndex)
+    {
+        EnemyTypeSettings type = enemyTypes[typeIndex];
+        float weight = Mathf.Max(0f, type.spawnWeight);
+        if (weight <= 0f || roundThreatBias <= 0f)
+        {
+            return weight;
+        }
+
+        float threat = Mathf.Max(0.1f, type.healthMultiplier)
+            * Mathf.Max(0.1f, type.towerDamageMultiplier)
+            * Mathf.Max(0.1f, type.speedMultiplier);
+        float damageTaken = type.damageTakenMultiplier <= 0f ? 1f : type.damageTakenMultiplier;
+        threat /= Mathf.Max(0.1f, damageTaken);
+        float biased = Mathf.Lerp(1f, threat, roundThreatBias);
+        return weight * Mathf.Max(0f, biased);
+    }
+
+    private static float ComputeSoftCappedBonus(int roundIndex, float perRound, float maxBonus)
+    {
+        if (roundIndex <= 0 || perRound <= 0f)
+        {
+            return 0f;
+        }
+
+        if (maxBonus <= 0f)
+        {
+            return roundIndex * perRound;
+        }
+
+        float k = perRound / Mathf.Max(0.0001f, maxBonus);
+        return maxBonus * (1f - Mathf.Exp(-k * roundIndex));
     }
 
     private EnemyConfig BuildConfig(int typeIndex, EnemyTypeSettings type, float speed, float health, float towerDamage, float defenderDamage)

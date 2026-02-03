@@ -24,6 +24,15 @@ public class GameManager : MonoBehaviour
     [SerializeField] private float healthMultiplierPerRound = 0.15f;
     [SerializeField] private float speedMultiplierPerRound = 0.05f;
     [SerializeField] private float damageMultiplierPerRound = 0.1f;
+    [SerializeField] private float maxHealthBonus = 2.0f;
+    [SerializeField] private float maxSpeedBonus = 0.6f;
+    [SerializeField] private float maxDamageBonus = 1.5f;
+
+    [Header("Round Density")]
+    [SerializeField] private float spawnIntervalReductionPerRound = 0.03f;
+    [SerializeField, Range(0.1f, 1f)] private float minSpawnIntervalMultiplier = 0.35f;
+    [SerializeField] private float extraSpawnsPerIntervalPerRound = 0.05f;
+    [SerializeField] private float maxExtraSpawnsPerInterval = 2f;
 
     [Header("Start Screen")]
     [SerializeField] private bool startOnAwake;
@@ -235,10 +244,17 @@ public class GameManager : MonoBehaviour
         spawnersCompleted = 0;
         RoundChanged?.Invoke(currentRound, roundInProgress);
 
-        int totalEnemies = baseEnemiesPerRound + Mathf.Max(0, (currentRound - 1) * enemiesPerRoundIncrement);
-        float healthMultiplier = 1f + Mathf.Max(0, (currentRound - 1) * healthMultiplierPerRound);
-        float speedMultiplier = 1f + Mathf.Max(0, (currentRound - 1) * speedMultiplierPerRound);
-        float damageMultiplier = 1f + Mathf.Max(0, (currentRound - 1) * damageMultiplierPerRound);
+        int roundIndex = Mathf.Max(0, currentRound - 1);
+        int totalEnemies = baseEnemiesPerRound + Mathf.Max(0, roundIndex * enemiesPerRoundIncrement);
+        float healthBonus = ComputeSoftCappedBonus(roundIndex, healthMultiplierPerRound, maxHealthBonus);
+        float speedBonus = ComputeSoftCappedBonus(roundIndex, speedMultiplierPerRound, maxSpeedBonus);
+        float damageBonus = ComputeSoftCappedBonus(roundIndex, damageMultiplierPerRound, maxDamageBonus);
+        float healthMultiplier = 1f + healthBonus;
+        float speedMultiplier = 1f + speedBonus;
+        float damageMultiplier = 1f + damageBonus;
+        float spawnIntervalMultiplier = ComputeSoftCappedFactorDown(roundIndex, spawnIntervalReductionPerRound, minSpawnIntervalMultiplier);
+        int spawnPerInterval = 1 + Mathf.FloorToInt(ComputeSoftCappedBonus(roundIndex, extraSpawnsPerIntervalPerRound, maxExtraSpawnsPerInterval));
+        spawnPerInterval = Mathf.Max(1, spawnPerInterval);
 
         int spawnerCount = activeSpawners.Count;
         int perSpawner = spawnerCount > 0 ? totalEnemies / spawnerCount : totalEnemies;
@@ -247,8 +263,43 @@ public class GameManager : MonoBehaviour
         for (int i = 0; i < spawnerCount; i++)
         {
             int spawnCount = perSpawner + (i < remainder ? 1 : 0);
-            activeSpawners[i].StartRound(spawnCount, healthMultiplier, speedMultiplier, damageMultiplier);
+            activeSpawners[i].StartRound(currentRound, spawnCount, healthMultiplier, speedMultiplier, damageMultiplier, spawnIntervalMultiplier, spawnPerInterval);
         }
+    }
+
+    private static float ComputeSoftCappedBonus(int roundIndex, float perRound, float maxBonus)
+    {
+        if (roundIndex <= 0 || perRound <= 0f)
+        {
+            return 0f;
+        }
+
+        if (maxBonus <= 0f)
+        {
+            return roundIndex * perRound;
+        }
+
+        float k = perRound / Mathf.Max(0.0001f, maxBonus);
+        return maxBonus * (1f - Mathf.Exp(-k * roundIndex));
+    }
+
+    private static float ComputeSoftCappedFactorDown(int roundIndex, float perRoundReduction, float minFactor)
+    {
+        minFactor = Mathf.Clamp(minFactor, 0.05f, 1f);
+        if (roundIndex <= 0 || perRoundReduction <= 0f)
+        {
+            return 1f;
+        }
+
+        float maxReduction = 1f - minFactor;
+        if (maxReduction <= 0f)
+        {
+            return 1f;
+        }
+
+        float k = perRoundReduction / Mathf.Max(0.0001f, maxReduction);
+        float reduction = maxReduction * (1f - Mathf.Exp(-k * roundIndex));
+        return Mathf.Clamp(1f - reduction, minFactor, 1f);
     }
 
     private void OnSpawnerRoundComplete(EnemySpawner spawner)
